@@ -1,8 +1,14 @@
+import sys
+import os
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import logging
-import os
+
+# Add your project folder to Python path
+sys.path.append(os.path.expanduser("~/Desktop/projects/dds_t11"))
+
+# Import store_in_mongo AFTER modifying sys.path
 from scripts.store_in_mongo import store_in_mongo
 
 # Configure logging for DAG
