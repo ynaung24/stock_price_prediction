@@ -1,0 +1,7 @@
+marketstack:
+  api_key: "f7ee2869edde8e8b79c93e65775db9b8"
+
+mongodb:
+  uri: "mongodb+srv://abdullahberakucuk:DdYiIZrEnGllw890@makertdata.iinrc.mongodb.net/?retryWrites=true&w=majority&appName=makertdata"
+  database: "stock_data"
+  collection: "market_prices"

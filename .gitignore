@@ -1,2 +1,11 @@
 .DS_Store
 .env
+config/config.yml
+
+airflow.db
+airflow.cfg
+webserver_config.py
+
+
+logs/
+*.logy
