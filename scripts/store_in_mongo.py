@@ -1,8 +1,8 @@
 import pymongo
 import logging
 import os
-from scripts.fetch_market_data import fetch_market_data
-from scripts.config_loader import load_config
+from fetch_market_data import fetch_market_data
+from config_loader import load_config
 
 # Load configuration
 config = load_config()
@@ -11,7 +11,7 @@ DB_NAME = config["mongodb"]["database"]
 COLLECTION_NAME = config["mongodb"]["collection"]
 
 # Configure logging
-log_file = os.path.expanduser("~/Desktop/projects/dds_t11/logs/log_script.log")
+log_file = os.path.expanduser("~/Desktop/projects/stock_price_prediction/logs/log_script.log")
 logging.basicConfig(filename=log_file, level=logging.INFO,
                     format="[%(asctime)s] %(levelname)s - %(message)s")
 
