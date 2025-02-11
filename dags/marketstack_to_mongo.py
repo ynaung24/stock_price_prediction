@@ -11,6 +11,7 @@ os.environ['NO_PROXY'] = '*'
 os.environ['AIRFLOW__CORE__LOGGING_LEVEL'] = 'INFO'
 os.environ['AIRFLOW__WEBSERVER__BASE_URL'] = 'http://localhost:8080'
 
+
 # Define base paths
 SCRIPTS_PATH = os.path.expanduser("~/Desktop/projects/stock_price_prediction/scripts")
 LOG_PATH = os.path.expanduser("~/Desktop/projects/stock_price_prediction/logs/log_script.log")
