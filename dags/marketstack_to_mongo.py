@@ -1,10 +1,15 @@
-import sys
 import os
+import sys
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 from airflow.utils.log.logging_mixin import LoggingMixin
 import logging
+
+# Set environment variables before Airflow loads
+os.environ['NO_PROXY'] = '*'
+os.environ['AIRFLOW__CORE__LOGGING_LEVEL'] = 'INFO'
+os.environ['AIRFLOW__WEBSERVER__BASE_URL'] = 'http://localhost:8080'
 
 # Define base paths
 SCRIPTS_PATH = os.path.expanduser("~/Desktop/projects/stock_price_prediction/scripts")
@@ -20,7 +25,7 @@ if not os.path.exists(os.path.dirname(LOG_PATH)):
 # Add scripts path to Python path
 sys.path.append(SCRIPTS_PATH)
 
-# Import functions AFTER adding path
+# Import functions AFTER setting environment variables and paths
 from fetch_market_data import fetch_market_data
 from store_in_mongo import store_in_mongo
 
@@ -28,7 +33,6 @@ from store_in_mongo import store_in_mongo
 logger = LoggingMixin().log
 logging.basicConfig(filename=LOG_PATH, level=logging.INFO,
                    format="[%(asctime)s] %(levelname)s - %(message)s")
-
 
 # DAG default arguments
 default_args = {
@@ -53,7 +57,6 @@ dag = DAG(
 fetch_task = PythonOperator(
     task_id="fetch_market_data_task",
     python_callable=fetch_market_data,
-    provide_context=True,  # Allows passing Airflow's context (XCom)
     dag=dag,
     execution_timeout=timedelta(minutes=5),
 )
@@ -62,7 +65,6 @@ fetch_task = PythonOperator(
 store_task = PythonOperator(
     task_id="store_market_data_task",
     python_callable=store_in_mongo,
-    provide_context=True,  # Allows receiving data from XCom
     dag=dag,
 )
 
