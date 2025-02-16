@@ -38,7 +38,7 @@ def fetch_market_data(**kwargs):
         # API parameters
         params = {
             "access_key": api_key,
-            "symbols": "AAPL,GOOGL,MSFT"
+            "symbols": "TSLA"
         }
         logging.info(f"Using parameters: {params}")
 

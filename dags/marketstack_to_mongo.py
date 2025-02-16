@@ -1,10 +1,10 @@
 import os
 import sys
+import logging
+from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from datetime import datetime, timedelta
 from airflow.utils.log.logging_mixin import LoggingMixin
-import logging
 
 # Set environment variables before Airflow loads
 os.environ['NO_PROXY'] = '*'
@@ -29,10 +29,20 @@ sys.path.append(SCRIPTS_PATH)
 from fetch_market_data import fetch_market_data
 from store_in_mongo import store_in_mongo
 
-# Configure logging
-logger = LoggingMixin().log
-logging.basicConfig(filename=LOG_PATH, level=logging.INFO,
-                   format="[%(asctime)s] %(levelname)s - %(message)s")
+# Configure logging properly with a file handler
+logger = logging.getLogger("airflow.task")
+logger.setLevel(logging.INFO)
+
+# Remove existing handlers to avoid duplicate logs
+for handler in logger.handlers[:]:
+    logger.removeHandler(handler)
+
+# Set up a file handler to store logs in LOG_PATH
+file_handler = logging.FileHandler(LOG_PATH)
+file_handler.setLevel(logging.INFO)
+formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
 
 # DAG default arguments
 default_args = {
@@ -73,4 +83,4 @@ store_task = PythonOperator(
 # Set Dependencies
 fetch_task >> store_task
 
-logging.info("DAG marketstack_to_mongo successfully loaded")
+logger.info("DAG marketstack_to_mongo successfully loaded")
