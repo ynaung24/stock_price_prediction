@@ -16,7 +16,7 @@ logging.basicConfig(filename=log_file, level=logging.INFO,
                     format="[%(asctime)s] %(levelname)s - %(message)s")
 
 def store_in_mongo(**kwargs):
-    """Stores stock market data in MongoDB Atlas."""
+    """Stores stock market data in MongoDB Atlas, avoiding duplicates."""
     logging.info("Connecting to MongoDB Atlas")
     
     try:
@@ -24,20 +24,26 @@ def store_in_mongo(**kwargs):
         db = client[DB_NAME]
         collection = db[COLLECTION_NAME]
 
-        # Fetch Airflow task instance if available
+        # Retrieve market data from XCom or directly fetch if not using Airflow
         ti = kwargs.get("ti")
-        
-        # Retrieve market data from XCom if available
         market_data = ti.xcom_pull(task_ids="fetch_market_data_task") if ti else fetch_market_data()
 
         if not market_data:
             logging.warning("No market data found to insert")
             return
         
-        collection.insert_many(market_data)
-        logging.info(f"Inserted {len(market_data)} records into MongoDB Atlas")
+        # Avoid inserting duplicates
+        existing_symbols = {doc["symbol"] for doc in collection.find({}, {"symbol": 1})}
+        new_data = [record for record in market_data if record["symbol"] not in existing_symbols]
+
+        if new_data:
+            collection.insert_many(new_data)
+            logging.info(f"Inserted {len(new_data)} new records into MongoDB Atlas")
+        else:
+            logging.info("No new records to insert, avoiding duplicates.")
+
         logging.info("MongoDB Atlas storage process completed")
-    
+
     except pymongo.errors.ConnectionError as ce:
         logging.error(f"MongoDB Connection Error: {ce}")
     except Exception as e:
