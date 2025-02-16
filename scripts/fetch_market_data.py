@@ -9,10 +9,6 @@ log_file = "/Users/bera/Desktop/projects/stock_price_prediction/logs/log_script.
 logging.basicConfig(filename=log_file, level=logging.INFO,
                     format="[%(asctime)s] %(levelname)s - %(message)s")
 
-logging.info("Fetching stock market data from MarketStack API")
-sys.stdout.flush()
-sys.stderr.flush()
-
 def fetch_market_data(**kwargs):
     """
     Fetches daily stock market data from MarketStack API using HttpHook.
@@ -25,18 +21,23 @@ def fetch_market_data(**kwargs):
         logging.info("HttpHook initialized successfully")
 
         # Retrieve API key from the connection's extra field
-        conn = Connection.get_connection_from_secrets("http_default")
-        extra = conn.extra_dejson
-        api_key = extra.get("access_key")  # Correct way to get the API key
-        logging.info(f"Retrieved API key: {api_key[:4]}********")
+        try:
+            conn = Connection.get_connection_from_secrets("http_default")
+            extra = conn.extra_dejson
+            api_key = extra.get("access_key")
+        except Exception as conn_error:
+            logging.error(f"Failed to retrieve API key from Airflow connection: {conn_error}")
+            return []
 
         if not api_key:
             logging.error("API Key not found in Airflow connection.")
             return []
 
+        logging.info(f"Retrieved API key: {api_key[:4]}********")
+
         # API parameters
         params = {
-            "access_key": api_key,  # Use the correct key
+            "access_key": api_key,
             "symbols": "AAPL,GOOGL,MSFT"
         }
         logging.info(f"Using parameters: {params}")
@@ -50,9 +51,16 @@ def fetch_market_data(**kwargs):
             records = data.get("data", [])
             logging.info(f"Successfully fetched {len(records)} records from MarketStack API")
 
-            # Push data to XCom
-            kwargs["ti"].xcom_push(key="market_data", value=records)
+            # Ensure 'ti' exists before attempting XCom push
+            ti = kwargs.get("ti")
+            if ti:
+                ti.xcom_push(key="market_data", value=records)
+                logging.info("Pushed market data to XCom successfully.")
+            else:
+                logging.warning("No task instance ('ti') found, skipping XCom push.")
+
             return records
+
         else:
             logging.error(f"Error fetching data: {response.status_code} - {response.text}")
             return []

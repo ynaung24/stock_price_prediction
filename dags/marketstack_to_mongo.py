@@ -11,12 +11,11 @@ os.environ['NO_PROXY'] = '*'
 os.environ['AIRFLOW__CORE__LOGGING_LEVEL'] = 'INFO'
 os.environ['AIRFLOW__WEBSERVER__BASE_URL'] = 'http://localhost:8080'
 
-
 # Define base paths
 SCRIPTS_PATH = os.path.expanduser("~/Desktop/projects/stock_price_prediction/scripts")
 LOG_PATH = os.path.expanduser("~/Desktop/projects/stock_price_prediction/logs/log_script.log")
 
-# Verify paths exist
+# Ensure paths exist
 if not os.path.exists(SCRIPTS_PATH):
     raise ValueError(f"Scripts directory not found at: {SCRIPTS_PATH}")
 
@@ -58,6 +57,7 @@ dag = DAG(
 fetch_task = PythonOperator(
     task_id="fetch_market_data_task",
     python_callable=fetch_market_data,
+    provide_context=True,  # Ensure task instance (`ti`) is passed
     dag=dag,
     execution_timeout=timedelta(minutes=5),
 )
@@ -66,6 +66,7 @@ fetch_task = PythonOperator(
 store_task = PythonOperator(
     task_id="store_market_data_task",
     python_callable=store_in_mongo,
+    provide_context=True,  # Ensure task instance (`ti`) is passed
     dag=dag,
 )
 
