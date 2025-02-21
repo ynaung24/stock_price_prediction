@@ -1,11 +1,15 @@
 import requests
 import json
-import datetime
+import yaml
 from pymongo import MongoClient
 from datetime import datetime
 
-# Define API Key and Endpoint
-API_KEY = "2G8Q3N81G8L5U7ZE"
+# Load configuration
+with open('config/config.yml', 'r') as file:
+    config = yaml.safe_load(file)
+
+# Define API Key and Endpoint from config
+API_KEY = config['alpha_vantage']['api_key']
 ticker = 'AAPL'
 
 url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey={API_KEY}"
@@ -28,8 +32,8 @@ else:
     print("Error fetching news data")
 
 
-# Use the connection string directly since it contains all necessary credentials
-connection_string = "mongodb+srv://matt:5OdZeJDF1lXUAld3@makertdata.iinrc.mongodb.net/?retryWrites=true&w=majority&appName=makertdata"
+# Use connection string from config
+connection_string = config['mongodb']['uri']
 
 # Connect to MongoDB
 try:
