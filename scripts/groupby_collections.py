@@ -1,8 +1,14 @@
+import os
 from pymongo import MongoClient
 import yaml
 
+# Get the directory containing the script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to config.yml in the config directory
+config_path = os.path.join(script_dir, '..', 'config', 'config.yml')
+
 # Load configuration
-with open('config.yml', 'r') as file:
+with open(config_path, 'r') as file:
     config = yaml.safe_load(file)
 
 # Connect to MongoDB using configuration
@@ -25,7 +31,7 @@ def group_and_insert():
 
     # Insert grouped data into new collections
     for symbol, documents in grouped_data.items():
-        collection_name = f"stocks_{symbol.lower()}"  # Naming format for new collections
+        collection_name = f"{symbol.lower()}_prices"  # Naming format for new collections
         new_collection = db[collection_name]
         
         # Insert data into the new collection
