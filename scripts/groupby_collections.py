@@ -1,8 +1,14 @@
 from pymongo import MongoClient
+import yaml
 
-client = MongoClient("mongodb+srv://yan:lnK87PLgiY9rjkpy@makertdata.iinrc.mongodb.net/?retryWrites=true&w=majority&appName=makertdata")  # Update if using MongoDB Atlas
-db = client["stock_data"]  # Replace with your database name
-original_collection = db["market_prices"]  # Replace with your collection name
+# Load configuration
+with open('config.yml', 'r') as file:
+    config = yaml.safe_load(file)
+
+# Connect to MongoDB using configuration
+client = MongoClient(config['mongodb']['uri'])
+db = client[config['mongodb']['database']]
+original_collection = db[config['mongodb']['collection']]
 
 def group_and_insert():
     # Fetch all documents from the original collection
