@@ -82,15 +82,21 @@ class NewsCollector:
         end_date = datetime.now()
         start_date = end_date - timedelta(days=days_back)
         
-        # Simplify the initial query to debug
-        query = "AAPL OR (Apple AND (stock OR tech))"
+        # More inclusive query for Apple Inc.
+        base_query = (
+            '(AAPL OR "Apple" OR "Tim Cook" OR "iPhone" OR "MacBook")'
+            ' AND (tech OR technology OR stock OR market OR business OR company)'
+            ' -fruit -recipe -food'
+        )
         
         params = {
-            'q': query,
+            'q': base_query,
             'from': start_date.strftime('%Y-%m-%d'),
             'to': end_date.strftime('%Y-%m-%d'),
             'language': 'en',
             'sortBy': 'publishedAt',
+            # Expanded list of domains
+            'domains': 'reuters.com,bloomberg.com,cnbc.com,finance.yahoo.com,marketwatch.com,fool.com,investors.com,ft.com,wsj.com,seekingalpha.com,barrons.com,businessinsider.com,techcrunch.com,appleinsider.com,macrumors.com',
             'apiKey': self.config.API_KEY
         }
         
@@ -98,29 +104,33 @@ class NewsCollector:
             response = requests.get(self.config.BASE_URL, params=params)
             response.raise_for_status()
             
-            # Print response for debugging
-            print("API Response Status:", response.status_code)
-            print("API Response:", response.json())
+            # Print the actual query for debugging
+            print(f"API URL (without key): {response.url.split('apiKey=')[0]}")
             
             articles = response.json()['articles']
-            logging.info(f"Retrieved {len(articles)} articles")
+            print(f"Total articles before filtering: {len(articles)}")
             
             processed_articles = []
             for article in articles:
-                # Temporarily disable strict validation for debugging
-                article_data = {
-                    'title': article['title'],
-                    'published_at': article['publishedAt'],
-                    'source': article['source']['name'],
-                    'source_domain': urlparse(article['url']).netloc,
-                    'description': article['description'],
-                    'url': article['url'],
-                    'collected_at': datetime.now().isoformat()
-                }
+                # Slightly relaxed validation
+                text = f"{article['title']} {article['description']}".lower()
                 
-                processed_articles.append(article_data)
+                # Must contain at least one of these terms
+                apple_terms = ['apple', 'aapl', 'iphone', 'ipad', 'macbook', 'tim cook', 'ios']
+                if any(term in text.lower() for term in apple_terms):
+                    article_data = {
+                        'title': article['title'],
+                        'published_at': article['publishedAt'],
+                        'source': article['source']['name'],
+                        'source_domain': urlparse(article['url']).netloc,
+                        'description': article['description'],
+                        'url': article['url'],
+                        'collected_at': datetime.now().isoformat()
+                    }
+                    processed_articles.append(article_data)
                     
-            logging.info(f"Processed {len(processed_articles)} articles")
+            print(f"Articles after filtering: {len(processed_articles)}")
+            logging.info(f"Processed {len(processed_articles)} relevant articles")
             return processed_articles
             
         except requests.exceptions.RequestException as e:
