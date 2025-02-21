@@ -1,16 +1,24 @@
+import yaml
+import requests
+import json
 from pymongo import MongoClient
 from datetime import datetime
 
-# MongoDB connection string
-connection_string = "mongodb+srv://matt:5OdZeJDF1lXUAld3@makertdata.iinrc.mongodb.net/?retryWrites=true&w=majority&appName=makertdata"
+
+# Load configuration
+with open('config/config.yml', 'r') as file:
+    config = yaml.safe_load(file)
+
+# MongoDB connection string from config
+connection_string = config['mongodb']['uri']
 TICKERS = ['TSLA', 'AAPL', 'BA', 'CRYPTO:BTC']
 
 def process_stock_news():
     try:
         # Connect to MongoDB
         client = MongoClient(connection_string)
-        db = client['stock_data']
-        stock_news_collection = db['stock_news']
+        db = client[config['mongodb']['database']]
+        stock_news_collection = db[config['mongodb']['collection']]
         
         # Collections for specific stocks
         tsla_news_collection = db['tsla_news']
