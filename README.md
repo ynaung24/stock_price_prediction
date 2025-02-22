@@ -2,6 +2,10 @@
 
 This repository contains an **Apache Airflow DAG** that fetches **daily stock market data** from [MarketStack](https://marketstack.com/) at **5 PM UTC** and stores it in **MongoDB Atlas**.
 
+Next Steps: 
+
+1. 
+
 ## 📌 Features
 
 ✅ Automated scheduling with Airflow  
