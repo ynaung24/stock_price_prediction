@@ -8,7 +8,7 @@ from config_loader import load_config
 config = load_config()
 MONGO_URI = config["mongodb"]["uri"]
 DB_NAME = config["mongodb"]["database"]
-COLLECTION_NAME = config["mongodb"]["collection"]
+COLLECTION_NAME = config["mongodb"]["collections"]["market_prices"]
 
 # Configure logging
 log_file = os.path.expanduser("~/Desktop/projects/stock_price_prediction/logs/log_script.log")
