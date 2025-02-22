@@ -3,6 +3,7 @@ import logging
 import sys
 from airflow.providers.http.hooks.http import HttpHook
 from airflow.models import Connection
+import yaml
 
 # Configure logging
 log_file = "/Users/bera/Desktop/projects/stock_price_prediction/logs/log_script.log"
@@ -20,17 +21,17 @@ def fetch_market_data(**kwargs):
         http_hook = HttpHook(method="GET", http_conn_id="http_default")
         logging.info("HttpHook initialized successfully")
 
-        # Retrieve API key from the connection's extra field
+        # Read API key from config file
         try:
-            conn = Connection.get_connection_from_secrets("http_default")
-            extra = conn.extra_dejson
-            api_key = extra.get("access_key")
-        except Exception as conn_error:
-            logging.error(f"Failed to retrieve API key from Airflow connection: {conn_error}")
+            with open('config/config.yml', 'r') as file:
+                config = yaml.safe_load(file)
+                api_key = config.get('marketstack', {}).get('api_key')
+        except Exception as config_error:
+            logging.error(f"Failed to read API key from config file: {config_error}")
             return []
 
         if not api_key:
-            logging.error("API Key not found in Airflow connection.")
+            logging.error("API Key not found in config file.")
             return []
 
         logging.info(f"Retrieved API key: {api_key[:4]}********")
@@ -38,7 +39,10 @@ def fetch_market_data(**kwargs):
         # API parameters
         params = {
             "access_key": api_key,
-            "symbols": "TSLA"
+            "symbols": "TSLA,AAPL,BA,GOOGL,GBTC",  # Tesla, Apple, Boeing, Google, Bitcoin Trust
+            "date_from": "2025-01-01",  # Starting date
+            "date_to": "2025-02-01",    # End date
+            "limit": 1000               # Number of records to return
         }
         logging.info(f"Using parameters: {params}")
 
@@ -54,7 +58,7 @@ def fetch_market_data(**kwargs):
             # Ensure 'ti' exists before attempting XCom push
             ti = kwargs.get("ti")
             if ti:
-                ti.xcom_push(key="market_data", value=records)
+                ti.xcom_push(key="market_prices", value=records)
                 logging.info("Pushed market data to XCom successfully.")
             else:
                 logging.warning("No task instance ('ti') found, skipping XCom push.")
