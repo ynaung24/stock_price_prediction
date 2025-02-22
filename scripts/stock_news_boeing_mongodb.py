@@ -1,11 +1,15 @@
 import requests
 import json
-import datetime
+import yaml
 from pymongo import MongoClient
 from datetime import datetime
 
-# Define API Key and Endpoint
-API_KEY = "2G8Q3N81G8L5U7ZE"
+# Load configuration
+with open('config/config.yml', 'r') as file:
+    config = yaml.safe_load(file)
+
+# Define API Key and Endpoint from config
+API_KEY = config['alpha_vantage']['api_key']
 ticker = 'BA'
 
 url = f"https://www.alphavantage.co/query?function=NEWS_SENTIMENT&tickers={ticker}&apikey={API_KEY}"
@@ -27,15 +31,16 @@ if response.status_code == 200:
 else:
     print("Error fetching news data")
 
-
-# Use the connection string directly since it contains all necessary credentials
-connection_string = "mongodb+srv://matt:5OdZeJDF1lXUAld3@makertdata.iinrc.mongodb.net/?retryWrites=true&w=majority&appName=makertdata"
+# Use connection string from config
+connection_string = config['mongodb']['uri']
+database_name = config['mongodb']['database']
+collection_name = config['mongodb']['collection']
 
 # Connect to MongoDB
 try:
     client = MongoClient(connection_string)
-    db = client['stock_data']
-    stock_news_collection = db['stock_news']
+    db = client[database_name]
+    stock_news_collection = db[collection_name]
     boeing_news_collection = db['boeing_news']
     
     # Test connection
@@ -47,6 +52,7 @@ try:
         try:
             # Add timestamp and check for duplicates
             article['stored_at'] = datetime.utcnow()
+            article['ticker'] = ticker
             
             # Check if article already exists
             existing = stock_news_collection.find_one({'title': article['title']})
@@ -67,4 +73,4 @@ except Exception as e:
 
 finally:
     client.close()
-    print("MongoDB connection closed.") 
+    print("MongoDB connection closed.")
