@@ -4,6 +4,8 @@ import sys
 from airflow.providers.http.hooks.http import HttpHook
 from airflow.models import Connection
 import yaml
+import os
+
 
 # Configure logging
 log_file = "/Users/bera/Desktop/projects/stock_price_prediction/logs/log_script.log"
@@ -21,9 +23,10 @@ def fetch_market_data(**kwargs):
         http_hook = HttpHook(method="GET", http_conn_id="http_default")
         logging.info("HttpHook initialized successfully")
 
-        # Read API key from config file
+        config_path = os.path.expanduser("~/Desktop/projects/stock_price_prediction/config/config.yml")
+
         try:
-            with open('config/config.yml', 'r') as file:
+            with open(config_path, 'r') as file:
                 config = yaml.safe_load(file)
                 api_key = config.get('marketstack', {}).get('api_key')
         except Exception as config_error:
