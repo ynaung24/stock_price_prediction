@@ -119,3 +119,10 @@ Use **MongoDB Shell** or **MongoDB Compass** or **MongoDB Atlas**
 ✅ Started Airflow & Verified Execution  
 
 Now your DAG will **fetch stock data daily at 5 PM** and store it in your **MongoDB Cluster!** 🚀
+
+
+## Important Note:
+
+- Ensure that the 'config.yml' has the correct API keys and MongoDB connection URI are correct.
+- Ensure that filepaths are set up correctly in these files:
+    
